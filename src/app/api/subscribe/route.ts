@@ -1,68 +1,44 @@
-// This file creates a POST endpoint at /api/subscribe.
-// It's called a "Route Handler" in Next.js.
-// Unlike page.tsx (which renders UI), route.ts handles raw HTTP requests.
+// API route: POST /api/subscribe
+// Now uses a real database (SQLite via Prisma) instead of a JSON file.
 
 import { NextRequest, NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
+import prisma from "@/lib/prisma";
 
-// Path to our simple JSON "database" file.
-// In production you'd use a real database — this is just for learning.
-const DATA_FILE = path.join(process.cwd(), "subscribers.json");
-
-// Helper: read existing subscribers from the JSON file.
-// If the file doesn't exist yet, return an empty array.
-async function getSubscribers(): Promise<string[]> {
-  try {
-    const data = await fs.readFile(DATA_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch {
-    // File doesn't exist yet — that's fine, start with empty list
-    return [];
-  }
-}
-
-// Helper: save the subscribers array back to the JSON file.
-async function saveSubscribers(subscribers: string[]): Promise<void> {
-  await fs.writeFile(DATA_FILE, JSON.stringify(subscribers, null, 2));
-}
-
-// The function name "POST" tells Next.js this handles POST requests.
-// Next.js maps HTTP methods to exported function names:
-//   export async function GET()  → handles GET  /api/subscribe
-//   export async function POST() → handles POST /api/subscribe
 export async function POST(request: NextRequest) {
-  // Parse the JSON body sent from the browser's fetch() call.
-  // The "await" pauses until the body is fully read.
   const body = await request.json();
   const email: string = body.email;
 
-  // Basic validation — check that the email exists and looks valid.
-  // The regex (regular expression) tests for a basic email pattern.
+  // Validate email format
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    // NextResponse.json() sends a JSON response back to the browser.
-    // The second argument sets the HTTP status code — 400 means "bad request."
     return NextResponse.json(
       { error: "Please enter a valid email address." },
       { status: 400 }
     );
   }
 
-  const subscribers = await getSubscribers();
+  // Normalize to lowercase
+  const normalizedEmail = email.toLowerCase();
 
-  // Check for duplicates
-  if (subscribers.includes(email.toLowerCase())) {
+  // Check if already subscribed.
+  // prisma.subscriber.findUnique() searches by a unique field (email).
+  // It returns the record if found, or null if not.
+  const existing = await prisma.subscriber.findUnique({
+    where: { email: normalizedEmail },
+  });
+
+  if (existing) {
     return NextResponse.json(
       { error: "This email is already subscribed!" },
-      { status: 409 } // 409 = "conflict" (resource already exists)
+      { status: 409 }
     );
   }
 
-  // Add the new subscriber and save
-  subscribers.push(email.toLowerCase());
-  await saveSubscribers(subscribers);
+  // Create a new subscriber in the database.
+  // Prisma automatically sets the id (autoincrement) and createdAt (now).
+  await prisma.subscriber.create({
+    data: { email: normalizedEmail },
+  });
 
-  // 201 = "created" — the standard status code for successful resource creation
   return NextResponse.json(
     { message: "Thanks for subscribing!" },
     { status: 201 }

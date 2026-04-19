@@ -1,5 +1,6 @@
 import { getAllPosts } from "@/data/posts";
 import SubscribeForm from "@/components/subscribe-form";
+import Link from "next/link";
 
 // This is the homepage component — it renders when someone visits "/"
 // The header and footer are now in layout.tsx, so this only has page content.
@@ -35,12 +36,12 @@ export default function Home() {
                 {post.date}
               </time>
               <h4 className="mt-1 text-lg font-semibold">
-                <a
+                <Link
                   href={`/blog/${post.slug}`}
                   className="text-zinc-900 hover:underline dark:text-zinc-100"
                 >
                   {post.title}
-                </a>
+                </Link>
               </h4>
               <p className="mt-1 text-zinc-600 dark:text-zinc-400">
                 {post.summary}

@@ -3,6 +3,7 @@
 import { getPostBySlug, getAllPosts } from "@/data/posts";
 import { notFound } from "next/navigation";
 import Markdown from "react-markdown";
+import Link from "next/link";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -23,12 +24,12 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
-      <a
+      <Link
         href="/blog"
         className="text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
       >
         ← Back to blog
-      </a>
+      </Link>
 
       <article className="mt-8">
         <time className="text-sm text-zinc-500 dark:text-zinc-400">

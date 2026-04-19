@@ -3,6 +3,7 @@
 // "import" pulls in data and types from our posts file.
 // We import the array of posts AND the Post type.
 import { getAllPosts } from "@/data/posts";
+import Link from "next/link";
 
 export default function BlogPage() {
   return (
@@ -30,12 +31,12 @@ export default function BlogPage() {
             </time>
             {/* Link to the individual post page */}
             <h2 className="mt-1 text-xl font-semibold">
-              <a
+              <Link
                 href={`/blog/${post.slug}`}
                 className="text-zinc-900 hover:underline dark:text-zinc-100"
               >
                 {post.title}
-              </a>
+              </Link>
             </h2>
             {/* Post summary */}
             <p className="mt-2 text-zinc-600 dark:text-zinc-400">
